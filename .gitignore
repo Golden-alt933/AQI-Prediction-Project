@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+data/raw/*.csv
+data/processed/
+models/*.joblib
+.package-cache/
+sklearn-pypi.json
+reports/new_predictions.csv

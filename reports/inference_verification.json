@@ -1,0 +1,9 @@
+{
+  "fresh_process_predictions_match": true,
+  "missing_column_rejected": true,
+  "wrong_city_rejected": true,
+  "negative_input_rejected": true,
+  "missing_current_aqi_rejected": true,
+  "infinite_input_rejected": true,
+  "missing_pollutants_imputed": true
+}

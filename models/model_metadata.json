@@ -1,0 +1,94 @@
+{
+  "city": "Delhi",
+  "horizon_days": 1,
+  "features": [
+    "PM2.5",
+    "PM10",
+    "NO2",
+    "SO2",
+    "CO",
+    "O3",
+    "aqi_today"
+  ],
+  "selected_model": "Random Forest depth10 leaf5",
+  "feature_set": "AQI plus pollutants",
+  "selection_rule": "Lowest validation MAE among ML candidates; baselines reported separately",
+  "seed": 42,
+  "splits": {
+    "train": {
+      "rows": 1395,
+      "origin_start": "2015-01-01",
+      "origin_end": "2018-11-10",
+      "target_start": "2015-01-02",
+      "target_end": "2018-11-11"
+    },
+    "validation": {
+      "rows": 299,
+      "origin_start": "2018-11-11",
+      "origin_end": "2019-09-05",
+      "target_start": "2018-11-12",
+      "target_end": "2019-09-06"
+    },
+    "test": {
+      "rows": 299,
+      "origin_start": "2019-09-06",
+      "origin_end": "2020-06-30",
+      "target_start": "2019-09-07",
+      "target_end": "2020-07-01"
+    }
+  },
+  "data_sha256": "0d84b21c3e4878bbad8df362f2ab05f61ad959538dddf5918e714077ed3c1847",
+  "versions": {
+    "python": "3.13.7",
+    "pandas": "3.0.3",
+    "numpy": "2.4.6",
+    "sklearn": "1.9.0",
+    "joblib": "1.5.3"
+  },
+  "parameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "criterion": "squared_error",
+    "max_depth": 10,
+    "max_features": 1.0,
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 5,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 200,
+    "n_jobs": 2,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "units": "Retained from supplied CSV; pollutant units have not been independently verified",
+  "source_url": "https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india",
+  "license": "Not verified from dataset metadata; verify before redistribution",
+  "cleaning": "Drop exact duplicates; reject conflicting dates; invalid/negative numeric readings to missing; never impute target; impute pollutants inside fitted pipeline",
+  "test_metrics": {
+    "selected_model": {
+      "MAE": 27.140728924103716,
+      "MSE": 1346.9565471964922,
+      "RMSE": 36.700906626355874,
+      "R2": 0.908817261102779
+    },
+    "persistence": {
+      "MAE": 34.49832775919732,
+      "MSE": 2338.063545150502,
+      "RMSE": 48.35352670850909,
+      "R2": 0.8417238936131257
+    },
+    "development_mean": {
+      "MAE": 114.23592810351705,
+      "MSE": 17205.248813973314,
+      "RMSE": 131.16877987529392,
+      "R2": -0.1647159023292466
+    }
+  },
+  "test_mae_improvement_over_persistence_percent": 21.327407190431302,
+  "out_of_range_predictions": 5
+}
