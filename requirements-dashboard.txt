@@ -1,0 +1,4 @@
+# Preserve the original experiment environment; add dashboard dependencies.
+-r requirements-lock.txt
+streamlit==1.65.0
+plotly==6.9.0

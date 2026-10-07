@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 
 
-def predict_frame(frame, model_path, metadata_path):
+def predict_frame(frame, model_path, metadata_path, *, model=None):
+    """Validate inputs and infer, optionally reusing a cached fitted pipeline."""
     metadata = json.loads(Path(metadata_path).read_text(encoding="utf-8"))
     if "City" in frame and not frame.City.eq(metadata["city"]).all():
         raise ValueError(f"This model was trained for {metadata['city']}; City must match")
@@ -20,7 +21,8 @@ def predict_frame(frame, model_path, metadata_path):
         raise ValueError("Inputs must be finite nonnegative readings or blank pollutants")
     if values.aqi_today.isna().any():
         raise ValueError("Today's AQI is required")
-    model = joblib.load(model_path)
+    if model is None:
+        model = joblib.load(model_path)
     return model.predict(values)
 
 
