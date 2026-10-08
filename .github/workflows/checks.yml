@@ -8,7 +8,26 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install web dependencies
+        run: npm ci
+      - name: Check dashboard data and model
+        run: npm test
+      - name: Build dashboard
+        run: npm run build
+      - name: Install Chromium for browser checks
+        run: npx playwright install --with-deps chromium
+      - name: Check the dashboard in a browser
+        run: npm run test:e2e
+
+  model:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
