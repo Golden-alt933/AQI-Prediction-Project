@@ -7,6 +7,26 @@ Vayu is a college project that pairs an interactive explorer for historical air-
 
 **The history is not live air-quality data.** The underlying city-day dataset covers 26 cities during 2015–2020, with different date coverage by city and gaps in some measurements. The trained forecasting model is narrower: it predicts next-calendar-day AQI for Delhi only. It cannot produce current readings, other-city forecasts, arbitrary future years, or a multi-day forecast. In the scenario form, the date labels the input day and following-day target; the model uses today's AQI and pollutant values, not the date itself. Missing historical observations remain unavailable; missing forecast pollutants use the saved imputer and are disclosed by the interface.
 
+## How the project was built
+
+The historical explorer and the forecast model share a source dataset, but follow separate paths. The explorer shows recorded observations for 26 cities; model training uses Delhi only.
+
+```mermaid
+flowchart TD
+    A["Kaggle dataset<br/>city_day.csv · 26 cities · 2015–2020"] --> B["Clean with pandas<br/>Parse dates and numbers, remove exact duplicates<br/>Reject conflicting records; invalid readings become missing"]
+    B --> C["Historical archive<br/>Export all-city observations to JSON<br/>Keep missing measurements unavailable"]
+    B --> D["Prepare Delhi forecast samples<br/>Today's AQI + six pollutants → next-calendar-day AQI<br/>Exclude samples with missing current or target AQI"]
+    D --> E["Split chronologically<br/>Training: 1,395 · Validation: 299 · Test: 299"]
+    E --> F["Train and compare candidate pipelines<br/>Fit pollutant imputation on training data<br/>Choose Linear Regression, Random Forest or Gradient Boosting by validation MAE"]
+    F --> G["Refit the selected Random Forest<br/>Use training + validation; keep test data withheld"]
+    G --> H["Evaluate on 299 held-out test days<br/>MAE, RMSE and R²; compare with persistence and mean baselines"]
+    H --> I["Save and export the fitted pipeline + report<br/>Verify 308 browser/Python prediction comparisons"]
+    C --> J["React dashboard<br/>Historical explorer · Delhi forecast lab · Model report"]
+    I --> J
+```
+
+The final test period does not determine the model or its parameters. The forecast calculates next-day AQI from supplied measurements; choosing a date does not provide live readings. Open **About this atlas** in the dashboard for the presentation flowchart. Images for a report or presentation are available in [desktop](docs/screenshots/workflow-desktop.png) and [mobile](docs/screenshots/workflow-mobile.png) layouts.
+
 ## Run the dashboard
 
 Requirements: Node.js 20 or newer and npm.

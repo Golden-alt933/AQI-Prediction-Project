@@ -2029,6 +2029,152 @@ function AboutPage({ source, pollutants, onNavigate }) {
           </p>
         </div>
       </section>
+      <section className="workflow-section" aria-labelledby="workflow-title">
+        <div className="workflow-heading">
+          <div>
+            <span className="card-kicker">THE PROJECT WORKFLOW</span>
+            <h2 id="workflow-title">From raw readings to a working atlas</h2>
+            <p>
+              One archive supports historical lookups; a separate Delhi sequence
+              trains the next-day model.
+            </p>
+          </div>
+          <span className="workflow-heading-mark">
+            <Activity size={18} />
+          </span>
+        </div>
+        <div className="workflow-start">
+          <WorkflowStep
+            number="01"
+            eyebrow="SOURCE DATA"
+            title="Kaggle city_day.csv"
+            body="India city-day air quality · 26 cities · 2015 to 1 July 2020"
+            tone="source"
+          />
+          <span className="workflow-arrow" aria-hidden="true">
+            <ChevronRight size={17} />
+          </span>
+          <WorkflowStep
+            number="02"
+            eyebrow="PREPARE WITH PANDAS"
+            title="Clean, keep the gaps"
+            body="Parse dates and numbers, remove exact duplicates, reject conflicting records; invalid readings become missing."
+            tone="prepare"
+          />
+        </div>
+        <div className="workflow-branch-label">
+          <span>THEN THE DATA TAKES TWO PATHS</span>
+        </div>
+        <div className="workflow-branches">
+          <article
+            className="workflow-path history-path"
+            aria-labelledby="history-path-title"
+          >
+            <div className="workflow-path-heading">
+              <span className="workflow-path-icon">
+                <Wind size={16} />
+              </span>
+              <div>
+                <span className="workflow-lane-label">HISTORICAL LOOKUP</span>
+                <h3 id="history-path-title">All-city archive</h3>
+              </div>
+              <span className="workflow-city-badge">26 CITIES</span>
+            </div>
+            <div className="workflow-path-node">
+              <span className="workflow-path-node-icon">
+                <FileChartColumnIncreasing size={16} />
+              </span>
+              <div>
+                <strong>City JSON records</strong>
+                <small>
+                  Daily AQI and pollutant observations, grouped by city
+                </small>
+              </div>
+            </div>
+            <div className="workflow-path-note">
+              <span className="workflow-branch-line" />
+              <p>
+                Overview reads the selected city and date/year from this
+                archive.{" "}
+                <strong>
+                  No model prediction is used for historical lookup.
+                </strong>
+              </p>
+            </div>
+          </article>
+          <article
+            className="workflow-path model-path"
+            aria-labelledby="model-path-title"
+          >
+            <div className="workflow-path-heading">
+              <span className="workflow-path-icon">
+                <FlaskConical size={16} />
+              </span>
+              <div>
+                <span className="workflow-lane-label">
+                  DELHI MODEL · ONE DAY AHEAD
+                </span>
+                <h3 id="model-path-title">Train, test, export</h3>
+              </div>
+              <span className="workflow-city-badge model-badge">DELHI</span>
+            </div>
+            <div className="workflow-model-steps">
+              <WorkflowNode
+                number="03"
+                title="Build tomorrow pairs"
+                body="Today’s AQI + six same-day pollutants → exact next-calendar-day AQI; drop pairs missing either AQI."
+              />
+              <WorkflowNode
+                number="04"
+                title="Split by time"
+                body="Train 1,395 · validation 299 · held-out test 299. No random date mixing."
+              />
+              <WorkflowNode
+                number="05"
+                title="Select on validation MAE"
+                body="Median imputation fits inside each training pipeline. Compare Linear Regression, Random Forest, and Gradient Boosting."
+              />
+              <WorkflowNode
+                number="06"
+                title="Refit and evaluate"
+                body="Refit the selected Random Forest on train + validation; test against persistence with MAE, RMSE, and R²."
+              />
+              <WorkflowNode
+                number="07"
+                title="Export and cross-check"
+                body="Export the fitted pipeline, including pollutant medians and forest, as JSON; verify 308 browser/Python predictions."
+              />
+            </div>
+          </article>
+        </div>
+        <div className="workflow-merge" aria-hidden="true">
+          <span />
+          <ChevronDown size={18} />
+          <span />
+        </div>
+        <div className="workflow-output">
+          <span className="workflow-output-number">08</span>
+          <span className="workflow-output-icon">
+            <Activity size={17} />
+          </span>
+          <div>
+            <span className="workflow-lane-label">REACT DASHBOARD</span>
+            <strong>
+              Explore history · replay a Delhi scenario · inspect the model
+              report
+            </strong>
+            <small>
+              Offline historical data and saved-model inference; no live AQI
+              feed.
+            </small>
+          </div>
+          <ChevronRight className="workflow-output-arrow" size={18} />
+        </div>
+        <p className="workflow-footnote">
+          City names and dates organize the archive. The forecasting model uses
+          only same-day AQI and pollutant readings as inputs.
+        </p>
+      </section>
       <section className="about-grid">
         <article className="chart-card about-card">
           <div className="card-kicker">THE DATASET</div>
@@ -2146,6 +2292,31 @@ function AboutPage({ source, pollutants, onNavigate }) {
         </button>
       </section>
     </>
+  );
+}
+
+function WorkflowStep({ number, eyebrow, title, body, tone }) {
+  return (
+    <article className={`workflow-step-card ${tone}`}>
+      <span className="workflow-step-number">{number}</span>
+      <div>
+        <span className="workflow-step-eyebrow">{eyebrow}</span>
+        <h3>{title}</h3>
+        <p>{body}</p>
+      </div>
+    </article>
+  );
+}
+
+function WorkflowNode({ number, title, body }) {
+  return (
+    <div className="workflow-node">
+      <span className="workflow-node-number">{number}</span>
+      <div>
+        <strong>{title}</strong>
+        <p>{body}</p>
+      </div>
+    </div>
   );
 }
 
