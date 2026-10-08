@@ -1,37 +1,84 @@
-# AQI Prediction Project
+# Vayu — India Air Quality Atlas
 
-AI for Engineers model project. Uses today's Delhi pollutant readings and observed AQI to forecast the **next calendar day's AQI**. The detailed assignment plan is in [PROJECT_GUIDE.md](PROJECT_GUIDE.md).
+Vayu is a college project that pairs an interactive explorer for historical air-quality observations across India with an honest demonstration of a trained next-day AQI model. Choose a city and inspect recorded AQI and pollutant readings by year or date, explore the model's evaluation report, or enter Delhi readings for a one-day-ahead scenario forecast.
 
-## Run on Windows PowerShell
+![Vayu historical overview](docs/screenshots/overview-desktop.png)
+<br />[Mobile overview](docs/screenshots/overview-mobile.png) · [Forecast lab](docs/screenshots/forecast-desktop.png) · [Model report](docs/screenshots/model-report-desktop.png)
+
+**The history is not live air-quality data.** The underlying city-day dataset covers 26 cities during 2015–2020, with different date coverage by city and gaps in some measurements. The trained forecasting model is narrower: it predicts next-calendar-day AQI for Delhi only. It cannot produce current readings, other-city forecasts, arbitrary future years, or a multi-day forecast. In the scenario form, the date labels the input day and following-day target; the model uses today's AQI and pollutant values, not the date itself. Missing historical observations remain unavailable; missing forecast pollutants use the saved imputer and are disclosed by the interface.
+
+## Run the dashboard
+
+Requirements: Node.js 20 or newer and npm.
+
+```powershell
+npm ci
+npm run dev
+```
+
+Vite prints the local URL. Create and preview a production build with:
+
+```powershell
+npm run build
+npm run preview
+```
+
+Run the project checks with:
+
+```powershell
+npm test
+npx playwright install chromium
+npm run build
+npm run test:e2e
+```
+
+The dashboard is a static Vite/React app. Its city histories, compact model export, and fonts are served locally; it does not require a runtime Python service, database, remote font, or paid data API. The repository includes 29,531 derived observations as JSON and the compact browser forest, keeping source gaps as null. It excludes the original raw CSV and Python `joblib` artifact. The JavaScript model export mirrors the fitted Python pipeline: median imputation and missing-value indicators feed the 200-tree random forest, with float32 values used for tree comparisons. The exporter checks parity against held-out and edge-case inputs.
+
+## Reproduce the trained model
+
+The model was trained from the [Air Quality Data in India dataset](https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india), published by Rohan Rao on Kaggle. Kaggle's dataset metadata API reported [CC0: Public Domain](https://creativecommons.org/publicdomain/zero/1.0/) on 8 October 2026; the [dataset page](https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india) and [metadata endpoint](https://www.kaggle.com/api/v1/datasets/list?search=air-quality-data-in-india) should be checked again before reuse. Give attribution to the publisher. Pollutant units are retained from the supplied CSV and have not been independently verified. The GitHub repo excludes the raw dataset and fitted Python binary.
+
+Download `city_day.csv` and place it at `data/raw/city_day.csv`. Then, in Windows PowerShell:
 
 ```powershell
 python -m venv .venv
 ./.venv/Scripts/python.exe -m pip install -r requirements-lock.txt
 ./.venv/Scripts/python.exe -m unittest discover -s tests -v
 ./.venv/Scripts/python.exe -m src.train --data data/raw/city_day.csv --city Delhi
-./.venv/Scripts/python.exe -m src.predict --input example_input.csv
 ./.venv/Scripts/python.exe -m src.verify_model
+./.venv/Scripts/python.exe scripts/export_dashboard.py
 ```
 
-Before training, download [Air Quality Data in India](https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india) and place `city_day.csv` in `data/raw/`. The author's local copy is already present; the GitHub repository excludes raw data, fitted model binaries, virtual environments and package caches. The training command recreates the saved model and processed data.
+Linux/macOS users can replace `./.venv/Scripts/python.exe` with `./.venv/bin/python`.
 
-An exact environment snapshot is saved as `requirements-lock.txt` after the verified run. A new machine can install the locked versions into a standard virtual environment using the commands above. Linux/macOS users can replace `./.venv/Scripts/python.exe` with `./.venv/bin/python`.
+The experiment joins each Delhi day's inputs to AQI on the exact next calendar day. Missing current/next-day AQI rows are excluded; pollutant medians and missingness indicators are fitted within the training pipeline. The data is split chronologically into 1,395 training rows (target dates 2 January 2015–11 November 2018), 299 validation rows (12 November 2018–6 September 2019), and 299 held-out test rows (7 September 2019–1 July 2020). Model selection uses validation MAE; the final test set is evaluated after refitting on training plus validation.
 
-## Experiment
+The validation study compares Linear Regression, Random Forest, and Gradient Boosting variants, alongside training-mean and persistence baselines. It also compares AQI-only inputs with AQI-plus-pollutant inputs. The depth-10 Random Forest with five rows per leaf was selected by validation MAE. Feature importance is measured on validation data before the final refit; neither it nor the test report implies pollutant causation.
 
-- Audits the actual CSV, rejects conflicting city/date records, handles invalid readings, and joins exact next-day targets.
-- Splits approximately 70/15/15 by target date, verifies label availability, and fits imputation/scaling inside training pipelines.
-- Compares training-mean and persistence baselines with Linear Regression, Random Forest, and Gradient Boosting.
-- Runs a small predetermined validation search and an AQI-only versus AQI-plus-pollutants feature study.
-- Selects the ML candidate by validation MAE, refits on training plus validation, and evaluates once on the final test period.
-- Saves EDA, feature importance, errors, predictions, model metadata and the full fitted pipeline.
+On that historical test period, the selected **Random Forest depth 10, minimum leaf size 5** had MAE **27.141 AQI points** and RMSE **36.701**. The persistence baseline had MAE **34.498** and RMSE **48.354**, so the model reduced MAE by 21.33% on this test. R² was 0.909; R² measures fit relative to a mean baseline and is **not accuracy percentage**. These results do not establish present-day or other-city performance. Read [reports/RESULTS.md](reports/RESULTS.md) for interpretation, limits, and artifacts.
 
-Read [reports/RESULTS.md](reports/RESULTS.md) for actual scores, interpretation, and limits after training. Score values are measured, not promised. The latest test period is historical; this is an offline forecasting experiment. Data license and pollutant units still require verification from source metadata before redistribution or unit-labelled integration.
+## Project map
 
-The prediction command takes CSV inputs with the exact feature names in `models/model_metadata.json`. Include `aqi_today`; missing pollutant cells are imputed by the saved pipeline. The model is scoped to the city in its metadata. Predictions are not clipped, and values outside 0–500 are flagged.
+- `src/prepare_data.py` cleans the source table and aligns exact next-day targets.
+- `src/train.py` performs temporal model selection, evaluation, plotting, and Python model export.
+- `src/predict.py` applies the saved Python pipeline to CSV measurements.
+- `src/verify_model.py` checks fresh-process inference and input validation.
+- `reports/` contains data audit, split boundaries, measured results, validation comparisons, error summaries, and figures.
+- `data/` contains the local raw source and generated processed data and is not committed.
+- `public/data/` contains the derived 26-city history, model, evaluation report, and verified prediction parity fixtures used by the browser.
+- `scripts/export_dashboard.py` rebuilds those browser data assets from the source CSV and trained pipeline, then checks parity.
+- `src/web/` contains the dashboard and its AQI analysis/model inference helpers.
+- `docs/DASHBOARD.md` explains the interface, demonstration sequence, local checks, and hosting options.
+- `PROJECT_GUIDE.md` documents the project objective, experiment design, and viva preparation.
 
-The Streamlit interface is the guide's later phase. This deliverable completes the model and command-line prediction path first.
+For the dashboard's supported data, interaction flow, and college demonstration checklist, see [docs/DASHBOARD.md](docs/DASHBOARD.md). The current project demo runs locally with Vite; local hosting is separate from a later public deployment.
 
-## Team development
+## Limitations and responsible interpretation
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch, review and validation workflow. GitHub Actions checks the forecasting contract and Python syntax on pushes and pull requests. The workflow needs no dataset; actual training and inference verification are separate local checks.
+The historical archive ends in 2020. The model is Delhi-only and one day ahead, and its rolling test assumes the previous day's observation is available. It has no live feed, weather inputs, delayed-publication model, or multi-day recursion. Missing data and severe events can affect reliability. Predictions are not clipped to 0–500; the original data contains AQI values above 500, whose derivation needs source-level interpretation. Do not use this educational project for health or emergency decisions.
+
+The original CSV is not included; the derived browser-ready observations are committed with source provenance in `public/data/manifest.json`. Before re-exporting or redistributing data, preserve publisher attribution and verify current license metadata.
+
+## Development and contribution
+
+Use a feature branch and review changes before merging. Python experiment changes should include the checks in [CONTRIBUTING.md](CONTRIBUTING.md); web changes should run the npm checks and a production build. Keep raw data, virtual environments, local paths, credentials, and generated binary model artifacts out of commits. Report measured changes to the validation protocol and keep the final test period out of model selection.

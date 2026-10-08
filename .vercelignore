@@ -1,0 +1,12 @@
+.venv
+.package-cache
+data
+models
+reports
+tests
+scripts
+docs
+__pycache__
+sklearn-pypi.json
+*.csv
+*.joblib

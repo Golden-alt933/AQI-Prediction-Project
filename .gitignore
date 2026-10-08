@@ -7,3 +7,11 @@ models/*.joblib
 .package-cache/
 sklearn-pypi.json
 reports/new_predictions.csv
+node_modules/
+dist/
+.vercel/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
