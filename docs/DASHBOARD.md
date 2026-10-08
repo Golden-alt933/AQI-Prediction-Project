@@ -49,13 +49,16 @@ The exporter writes `public/data/manifest.json`, one JSON file for every city, `
 
 ## College demonstration checklist
 
+The **About this atlas** page includes the project workflow as a responsive flowchart. The [desktop diagram](screenshots/workflow-desktop.png) and [mobile diagram](screenshots/workflow-mobile.png) can be reused in a project report or presentation; the README also includes an editable Mermaid version.
+
 1. Open the home dashboard and explain that the history is a dated dataset, not live monitoring.
 2. Select multiple cities, then compare a year view with an exact date. Point out where dates or measurements are missing.
 3. Explain AQI and pollutant charts, units as supplied by the dataset, and any visible source caveat.
-4. Open the model report. Explain the exact next-day target, chronological train/validation/test periods, persistence baseline, MAE/RMSE, and why R² is not accuracy percentage.
-5. Use the Delhi forecast form with a date and today's AQI. Pollutant fields are optional; blank fields use training medians. Show the predicted target date and scenario label. Try an invalid or missing AQI input to demonstrate validation.
-6. Export a CSV and open it to confirm that it contains the selected historical records and labels.
-7. Resize to a phone-width viewport and check that filters, charts, and navigation remain usable.
+4. Open **About this atlas** and walk through the project flowchart: Kaggle source, pandas cleaning, separate archive and Delhi-model paths, chronological split, training and validation, held-out evaluation, verified export, and dashboard. Explain why imputation is fitted after splitting and why the final test is withheld from model selection.
+5. Open the model report. Explain the exact next-day target, chronological train/validation/test periods, persistence baseline, MAE/RMSE, and why R² is not accuracy percentage.
+6. Use the Delhi forecast form with a date and today's AQI. Pollutant fields are optional; blank fields use training medians. Show the predicted target date and scenario label. Try an invalid or missing AQI input to demonstrate validation.
+7. Export a CSV and open it to confirm that it contains the selected historical records and labels.
+8. Resize to a phone-width viewport and check that filters, charts, and navigation remain usable.
 
 ## Troubleshooting
 
